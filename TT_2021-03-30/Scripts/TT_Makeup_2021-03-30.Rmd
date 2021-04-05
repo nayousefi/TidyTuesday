@@ -1,0 +1,79 @@
+---
+title: "Tidy Tuesday - Makeup Shades"
+author: "Nikolas Yousefi"
+date: "2021-03-30"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+# Loading Libraries
+```{r}
+library(tidyverse)
+library(here)
+library(ggridges)
+library(ggeasy)
+```
+
+# Loading Data
+```{r}
+allShades <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-03-30/allShades.csv')
+
+glimpse(allShades)
+
+```
+
+# Data Analysis and Cleaning
+```{r}
+shadesclean <- allShades %>%
+  select(brand, lightness) %>% # Selecting columns of interest
+  filter(brand == c("FENTY BEAUTY by Rihanna", 
+                    "Maybelline", 
+                    "NARS", 
+                    "It Cosmetics", 
+                    "HOURGLASS", 
+                    "HUDA BEAUTY", 
+                    "NYX Professional Makeup", 
+                    "Clinique",
+                    "Dior", 
+                    "L'Oréal")) %>% # Selecting brands of interest to clean data
+  drop_na() # Dropping all NAs
+  
+glimpse(shadesclean)
+```
+
+# Graphing
+```{r}
+ggplot(shadesclean,
+       aes(x = lightness,
+           y = brand,
+           fill = brand))+ # Setting up the graph
+  geom_density_ridges(alpha = 0.5)+ # Using ridgelines with transparency
+  theme_ridges()+ # Using the ridge theme
+  theme_bw()+ # Using the black/white theme
+  theme(legend.position = "none", # Removing legend
+        plot.title = element_text(size = 13), # Changing title size
+        axis.text = element_text(size = 8), # Changing text size of the axes text
+        axis.title.x = element_text(size = 10), # Changing axis text size
+        axis.title.y = element_text(size = 10), # Changing axis text size
+        plot.subtitle = element_text(size = 8))+ # Changing subtitle text size))+
+  scale_fill_discrete()+ # Adding a discrete color scale
+  labs(x = "Lightness", 
+       y = "Foundation Brand", 
+       title = "Measure of Lightness across Foundations by Top 10 Brands",
+       subtitle = "Top brands as mentioned by The Cosmopolitan",
+       caption = "data from rfordatascience/tidytuesday and The Pudding")+ # Labeling axes, adding title and caption
+  ggeasy::easy_center_title()+ # Centering the title
+  ggsave(here("TT_2021-03-30", "Output", "TT_Makeup_2021-03-30.png"),
+         width = 15, height = 7) # Saving the output to the desired folder at a specific size
+```
+
+

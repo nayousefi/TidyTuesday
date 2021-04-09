@@ -1,0 +1,106 @@
+---
+title: "Tidy Tuesday - Soybean Production"
+author: "Nikolas Yousefi"
+date: "2021-04-06"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+# Loading Libraries
+```{r}
+library(tidyverse)
+library(here)
+library(ggeasy)
+library(ghibli)
+```
+
+# Loading Data
+```{r}
+soybean_use <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-04-06/soybean_use.csv')
+
+glimpse(soybean_use)
+
+```
+
+# Cleaning Data
+```{r}
+brazsoybean <- soybean_use %>% 
+  filter(year >= 2000) %>% # Filtering out dates before 2000
+  filter(entity == "Brazil") %>% # Filtering out for Brazil only
+  rename("Human Food" = "human_food",
+         "Animal Feed" = "animal_feed",
+         "Processed" = "processed") %>% # Capitalizing column names
+  pivot_longer(
+    cols = "Human Food":"Processed",
+    names_to = "use1",
+    values_to = "values1") # Pivoting for easier graphing
+
+ussoybean <- soybean_use %>% 
+  filter(year >= 2000) %>% # Filtering out dates before 2000
+  filter(entity =="United States") %>% # Filtering out for US only
+  rename("Human Food" = "human_food",
+         "Animal Feed" = "animal_feed",
+         "Processed" = "processed") %>% # Capitalizing column names
+  pivot_longer(
+    cols = "Human Food":"Processed",
+    names_to = "use2",
+    values_to = "values2") # Pivoting for easier graphing
+
+options(scipen = 999) # Removing scientific notation from the graphs
+
+glimpse(brazsoybean)
+glimpse(ussoybean)
+```
+
+# Plotting Brazil Data
+```{r}
+  ggplot(brazsoybean, aes(x = year,
+                          y = values1,
+                          fill = use1))+ # Setting up the graph
+  geom_area(size=1)+ # Using an area graph
+  scale_fill_manual(values = ghibli_palette("PonyoMedium")[c(6, 4, 3)])+ # Selecting my color palette
+  theme_bw()+ # Selecting basic black/white theme
+  theme(plot.title=element_text(size = 16), 
+        axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10), # Adjusting font sizes of various text elements
+        legend.position = "bottom")+ # Moving legend to the bottom of the graph
+   labs(x = "Year", 
+       y = "Soybean Production (tons)", # Labeling my axes
+       fill = "Soybean Usage",
+       title = "Brazilian Soybean Production",
+       caption = "data from rfordatascience/tidytuesday and OurWorldInData")+ # Adding proper labels to axes plus giving title and caption
+  ggeasy::easy_center_title() + # Centering the title
+  ggsave(here("TT_2021-04-06", "Output", "TT_Brazil_2021-04-06.png"),
+         width = 10, height = 6) # Saving the output to the desired folder at a specific size
+```
+
+# Plotting U.S. Data
+```{r}
+  ggplot(ussoybean, aes(x = year,
+                          y = values2,
+                          fill = use2))+ # Setting up the graph
+  geom_area(size=1)+ # Using an area graph
+  scale_fill_manual(values = ghibli_palette("PonyoMedium")[c(6, 4, 3)])+ # Selecting my color palette
+  theme_bw()+ # Selecting basic black/white theme
+  theme(plot.title=element_text(size = 16), 
+        axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10), # Adjusting font sizes of various text elements
+        legend.position = "bottom")+ # Moving legend to the bottom of the graph
+   labs(x = "Year", 
+       y = "Soybean Production (tons)", # Labeling my axes
+       fill = "Soybean Usage",
+       title = "United States Soybean Production",
+       caption = "data from rfordatascience/tidytuesday and OurWorldInData")+ # Adding proper labels to axes plus giving title and caption
+  ggeasy::easy_center_title() + # Centering the title
+  ggsave(here("TT_2021-04-06", "Output", "TT_US_2021-04-06.png"),
+         width = 10, height = 6) # Saving the output to the desired folder at a specific size
+```

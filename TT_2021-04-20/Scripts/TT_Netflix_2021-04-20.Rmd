@@ -1,0 +1,75 @@
+---
+title: "Tidy Tuesday - Netflix"
+author: "Nikolas Yousefi"
+date: "2021-04-20"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+# Loading Libraries
+```{r}
+library(tidyverse)
+library(here)
+library(ggeasy)
+```
+
+# Read Data
+```{r}
+netflix_titles <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-04-20/netflix_titles.csv')
+
+glimpse(netflix_titles)
+```
+# Cleaning Data
+```{r}
+netflixclean <- netflix_titles %>% 
+  select("type", "rating", "release_year") %>% # Selecting columns of interest
+  filter(release_year >= 2010) %>% # Removing pre-2010 media
+  filter(type != "TV Show") %>% # Removing TV shows
+  filter(rating == c("G",
+                     "PG", 
+                     "PG-13",
+                     "R",
+                     "NR",
+                     "UR")) %>% # Selecting only G-R rated films
+  mutate(movies = ifelse(type == "Movie",1,0)) %>%  # Assigning binary number for movies for easier calculations
+  drop_na() %>% # Dropping all NAs
+  group_by(release_year, rating) %>% # Grouping by specified categories
+  rename("Rating" = rating) %>% # Renaming for proper capitalization
+  summarise(moviestotal = sum(movies)) # Adding total movies released based on year of release
+
+glimpse(netflixclean)
+```
+
+# Graphing Data
+```{r, fig.align = 'center'}
+ggplot(netflixclean, aes(x = release_year, 
+                         y = moviestotal, 
+                         color = Rating))+ # Plotting the graph
+  geom_point(size = 2)+ # Using points to denote the sums
+  geom_line(size = 1.3)+ # Using a line plot
+  theme_bw() + # Choosing the basic black/white theme
+  theme(plot.title = element_text(size = 20),
+        axis.title = element_text(size = 13),
+        axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10), # Adjusting font sizes of various text elements
+        legend.position = "bottom")+ # Moving legend to the bottom of the graph
+  scale_x_continuous(breaks = c(2010, 2012, 2014, 2016, 2018, 2020))+ # Adding line breaks for a cleaner x-axis
+  labs(x = "Year", # X-axis label
+       y = "Number of Movies", # Y-axis label
+       title = "Movies released on Netflix since 2010", # Title
+       subtitle = "Only using Motion Picture Association film rated movies (G-R)", # Subtitle
+       caption = "data from rfordatascience/tidytuesday and Kaggle")+ # Caption
+  ggeasy::easy_center_title()+ # Centering the title
+  ggsave(here("TT_2021-04-20", "Output", "TT_Netflix_2021-04-20.png"),
+         width = 14, height = 7) # Saving the output to the desired folder at a specific size
+```
+

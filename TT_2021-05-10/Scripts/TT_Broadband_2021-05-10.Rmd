@@ -1,0 +1,61 @@
+---
+title: "Tidy Tuesday - US Broadband"
+author: "Nikolas Yousefi"
+date: "2021-05-10"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+# Loading Libraries
+```{r}
+library(tidyverse)
+library(here)
+library(ggeasy)
+library(viridis)
+```
+
+# Loading Data
+```{r}
+broadband <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-05-11/broadband.csv')
+```
+
+# Cleaning Data
+```{r}
+broadbandclean <- broadband %>% 
+  filter(ST == "CA") %>% # Viewing only California
+  filter(`BROADBAND AVAILABILITY PER FCC` <= 0.50) # Viewing only <= 50%
+```
+
+# Graphing Data
+```{r, fig.align='center'}
+  ggplot(broadbandclean, 
+         aes(x=`COUNTY NAME`, 
+             y=`BROADBAND AVAILABILITY PER FCC`, 
+             size = `BROADBAND USAGE`))+ # Setting up the plot
+  geom_point()+ # Points
+  theme_bw()+ # Black/white theme
+  theme(axis.title.x = element_blank(), # Removing redundant axes names
+        axis.text.x = element_text(angle = 50, hjust = 1), #  Rotating x axis text for easier reading
+        axis.text = element_text(size = 12), # Increasing axis element text size
+        plot.title = element_text(size = 18), # Increasing title size
+        plot.subtitle = element_text(hjust = 0.5))+
+   labs(y = "Broadband Availability per FCC (x 100%)",
+          title = "Broadband Usage in Certain Counties of California",
+       subtitle = "Viewing only counties with <50% broadband availability",
+       size = "Broadband Usage (x 100%)",
+       caption = "data from rfordatascience/tidytuesday and Microsoft GitHub")+ # Adding labels and captions
+  ggeasy::easy_center_title()+ # Centering the title
+  ggsave(here("TT_2021-05-10", "Output", "TT_Broadband_2021-05-10.png"),
+         width = 12, height = 10) # Saving the output to the desired folder at a specific size
+```
+
+
